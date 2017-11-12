@@ -1,2 +1,3 @@
-# m4
-Custom Autoconf Macros
+# quickhatch-m4
+
+Custom Autoconf Macros from Quickhatch
