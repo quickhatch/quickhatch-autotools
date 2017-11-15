@@ -28,4 +28,4 @@ submodule.
 ### Integration with Gnulib
 
 
-[comment] # (vim: textwidth=78 autoindent)
+[comment]: # (vim: textwidth=78 autoindent)
