@@ -27,7 +27,7 @@ submodule.
 
 ### Integration with Gnulib
 
-If your project uses Gnlib's [bootstrap][4] script, add the following to your
+If your project uses Gnulib's [bootstrap][4] script, add the following to your
 [bootstrap.conf][5] `bootstrap_post_import_hook` function override.
 
 ```bash
