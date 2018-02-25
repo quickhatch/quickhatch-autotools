@@ -1,6 +1,6 @@
-# quickhatch-m4
+# quickhatch-autotools
 
-Custom Autoconf macros from Quickhatch
+Autoconf macros and auxiliary build tools for use with the [GNU Autotools][6].
 
 ## Macro List
 
@@ -17,13 +17,13 @@ See source code for macro usage instructions.
 To use these macros in your project, we recommend installing them as a Git
 submodule.
 
-* Add the `quickhatch-m4` repository as a submodule of your project.
+* Add the `quickhatch-autotools` repository as a submodule of your project.
 
-        $ git submodule add https://github.com/quickhatch/quickhatch-m4.git .qh-m4
+        $ git submodule add https://github.com/quickhatch/quickhatch-autotools.git .qh-at
 
-* Mention `-I .qh-m4` in `ACLOCAL_AMFLAGS` in `Makefile.am`.
+* Mention `-I .qh-at/m4` in `ACLOCAL_AMFLAGS` in `Makefile.am`.
 
-        ACLOCAL_AMFLAGS = -I m4 -I .qh-m4 --install
+        ACLOCAL_AMFLAGS = -I m4 -I .qh-at/m4 --install
 
 ### Integration with Gnulib
 
@@ -33,7 +33,7 @@ If your project uses Gnlib's [bootstrap][4] script, add the following to your
 ```bash
 # non-gnulib submodules
 submodules='
-  quickhatch-m4
+  quickhatch-autotools
 '
 
 bootstrap_post_import_hook()
@@ -50,10 +50,11 @@ bootstrap_post_import_hook()
 } # bootstrap_post_import_hook
 ```
 
-[1]: ./qh-gnulib.m4
-[2]: ./qh-pkg.m4
-[3]: ./quickhatch.m4
+[1]: ./m4/qh-gnulib.m4
+[2]: ./m4/qh-pkg.m4
+[3]: ./m4/quickhatch.m4
 [4]: https://github.com/coreutils/gnulib/blob/master/build-aux/bootstrap
 [5]: https://github.com/coreutils/gnulib/blob/master/build-aux/bootstrap.conf
+[6]: https://www.gnu.org/software/automake/faq/autotools-faq.html
 
 [comment]: # ( vim: set autoindent syntax=markdown textwidth=78: )
