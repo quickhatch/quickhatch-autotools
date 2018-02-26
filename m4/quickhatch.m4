@@ -1,5 +1,87 @@
 # quickhatch.m4
 
+# QH_ENABLE_DEBUG(VARIABLE, [DEFINE_SYMBOL])
+# ------------------------------------------
+# Add configure option (--enable-debug). If enabled, add compiler flags
+# -g and -O0 to VARIABLE. If DEFINE_SYMBOL is given, call
+# AC_DEFINE([DEFINE_SYMBOL], [1], [enable debug]).
+#
+AC_DEFUN([QH_ENABLE_DEBUG],
+[
+AC_ARG_ENABLE([debug],
+              [AS_HELP_STRING([--enable-debug],
+                              [enable debug (default=no)])],
+              [qh_enable_debug=$enableval],
+              [qh_enable_debug=no])
+AS_IF([test "x$qh_enable_debug" = xyes],
+      [gl_WARN_ADD([-g], [$1])
+       gl_WARN_ADD([-O0], [$1])
+       m4_ifval([$2], [AC_DEFINE([$2], [1], [enable debug])])])
+]) # QH_ENABLE_DEBUG
+
+# QH_ENABLE_WARN_ERROR([VARIABLE = WARN_CFLAGS/WARN_CXXFLAGS])
+# ------------------------------------------------------------
+# Add configure option (--enable-warn-error) to make the compiler treat
+# warnings as errors. If enabled, add -Werror to VARIABLE which defaults to
+# WARN_CFLAGS/WARN_CXXFLAGS.
+#
+AC_DEFUN([QH_ENABLE_WARN_ERROR],
+[
+AC_ARG_ENABLE([warn-error],
+              [AS_HELP_STRING([--enable-warn-error],
+                              [treat compiler warnings as errors (default=no)])],
+              [qh_enable_warn_error=$enableval],
+              [qh_enable_warn_error=no])
+AS_IF([test "x$qh_enable_warn_error" = xyes],
+      [gl_WARN_ADD([-Werror], [$1])])
+]) # QH_ENABLE_WARN_ERROR
+
+# QH_MANYWARN_ALL_GCC([VARIABLE = WARN_CFLAGS/WARN_CXXFLAGS],
+#                     [NOWARN_VARIABLE = QH_NOWARN])
+# -----------------------------------------------------------
+# Add all documented GCC warning parameters to variable VARIABLE
+# which defaults to WARN_CFLAGS/WARN_CXXFLAGS. Exclude warnings
+# contained in NOWARN_VARIABLE which defaults to QH_NOWARN.
+#
+AC_DEFUN([QH_MANYWARN_ALL_GCC],
+[
+gl_MANYWARN_ALL_GCC([qh_all_warnings])
+gl_MANYWARN_COMPLEMENT([qh_warnings],
+                       [$qh_all_warnings],
+                       [m4_if([$2], [], [$QH_NOWARN], [$$2])])
+for qh_warn in $qh_warnings; do
+  gl_WARN_ADD([$qh_warn], [$1])
+done
+]) # QH_MANYWARN_ALL_GCC
+
+# QH_PKG_CHECK_EXISTS(MODULE, SYSTEM-PACKAGE)
+# ----------------------------------------------------------
+# Call PKG_CHECK_EXISTS with MODULE. If MODULE does not
+# exist, call AC_MSG_ERROR with a message indicating that
+# SYSTEM-PACKAGE could not be found.
+#
+AC_DEFUN([QH_PKG_CHECK_EXISTS],
+[
+AC_REQUIRE([PKG_PROG_PKG_CONFIG])
+AC_MSG_CHECKING([for pkg-config module $1])
+PKG_CHECK_EXISTS([$1],
+                 [AC_MSG_RESULT([yes])],
+                 [AC_MSG_RESULT([no])
+                  AC_MSG_ERROR([Could not find system package $2])])
+]) # QH_PKG_CHECK_EXISTS
+
+# QH_RPM_VERSION_RELEASE('VERSION RELEASE',
+#                        [VERSION_VARIABLE = QH_RPM_VERSION],
+#                        [RELEASE_VARIABLE = QH_RPM_RELEASE])
+# ----------------------------------------------------------
+# Set variables containing RPM Version and Release tags.
+AC_DEFUN([QH_RPM_VERSION_RELEASE],
+[
+m4_define([qh_vr], m4_split($1))
+AC_SUBST(m4_if([$2], [], [QH_RPM_VERSION], [$$2]), [m4_argn([1], qh_vr)])
+AC_SUBST(m4_if([$3], [], [QH_RPM_RELEASE], [$$3]), [m4_argn([2], qh_vr)])
+]) # QH_RPM_VERSION_RELEASE
+
 # QH_VAR_ENSURE(VARIABLE, DESCRIPTION, VALUE-IF-NOT-SET)
 # ----------------------------------------------------------
 # Ensure the literal shell VARIABLE is set, and make it
