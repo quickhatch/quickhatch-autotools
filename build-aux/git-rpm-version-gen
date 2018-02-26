@@ -1,0 +1,147 @@
+#! /usr/bin/env bash
+
+function usage()
+{
+	cat <<- EOF
+
+	Usage: $me [OPTION]... .tarball-rpm-version
+
+	Print RPM Version and Release tags.
+
+	Options:
+
+	  -p, --prefix PREFIX			prefix of git release tags (default: $PREFIX)
+	  -v, --version-fallback FALLBACK	fallback version tag (default: $VERSION_FALLBACK)
+	  -r, --release-fallback FALLBACK	fallback release tag (default: $RELEASE_FALLBACK)
+	  -h, --help				display this help and exit
+	EOF
+} # usage
+
+# borrowed from gnulib
+# msgf_ FORMAT-STRING ARG1...
+function msgf_ ()
+{
+  local msgf_format_="$1"
+  shift
+  local nl='
+'
+  case $* in
+    *$nl*) me_=$(printf "$me"|tr "$nl|" '??')
+       printf "$msgf_format_" "$@" | sed "s|^|$me_: |" ;;
+    *) printf "$me: $msgf_format_" "$@" ;;
+  esac
+} # msgf_
+
+# borrowed from gnulib
+# msg_ WORD1...
+function msg_ ()
+{
+  # If IFS does not start with ' ', set it and emit the message in a subshell.
+  case $IFS in
+    ' '*) msgf_ '%s\n' "$*";;
+    *)    (IFS=' '; msg_ "$@");;
+  esac
+} # msg_
+
+# borrowed from gnulib
+# warn_ WORD1...
+function warn_ ()
+{
+  msg_ "$@" 1>&2
+} # warn_
+
+# borrowed from gnulib
+# die WORD1...
+function die()
+{
+  warn_ "$@"
+  exit 1
+} # die
+
+me=$(basename $0)
+nl='
+'
+PREFIX=v
+prefix=$PREFIX
+RELEASE_FALLBACK=1
+release_fallback=$RELEASE_FALLBACK
+VERSION_FALLBACK=0
+version_fallback=$VERSION_FALLBACK
+vr=
+
+short_opts='hp:r:v:'
+long_opts='help,prefix:,release-fallback:,version-fallback:'
+
+if ! options=$(getopt --options $short_opts --longoptions $long_opts --name $me -- "$@"); then
+  die "Option parsing failed"
+fi
+eval set -- "$options"
+
+while true; do
+  case "$1" in
+    -h|--help) usage; exit ;;
+    -p|--prefix) prefix="$2"; shift 2 ;;
+    -r|--release-fallback) release_fallback="$2"; shift 2 ;;
+    -v|--version-fallback) version_fallback="$2"; shift 2 ;;
+    --) shift; break ;;
+    *) die 'Option parsing failed' ;;
+  esac
+done
+
+vr_file=$1
+
+test "x$vr_file" != x || die 'version file argument is required'
+
+# first try the version/release file
+if [[ -f $vr_file ]]; then
+  vr=$(<$vr_file) || vr=
+  case $vr in
+    *$nl*) vr= ;; # reject multi-line output
+    [0-9]*) ;;
+    *) vr= ;;
+  esac
+  test "x$vr" = x \
+    && warn_ "WARNING: $vr_file contains invalid version/release"
+fi
+
+if test "x$vr" != x; then
+  : # use $vr
+elif test "$(git log --max-count=1 --pretty=format:x . 2>&1)" = x \
+    && gv=$(git describe --match="$prefix*" HEAD 2>/dev/null) \
+    && case $gv in
+         $prefix[0-9]*) ;;
+         *) (exit 1) ;;
+       esac; then
+
+  # version tag
+  version=$(sed -re "s/^$prefix([0-9][0-9.]*)-.*$/\1/" <<<$gv)
+
+  # release tag
+  if git describe --exact-match --match="$prefix*" HEAD &>/dev/null; then
+    release="$release_fallback"
+  else # snapshot release
+
+    # package release number
+    pkgrel=$(sed -re "s/^.*-([0-9]{1,})-g.*$/\1/" <<<$gv)
+
+    commit=$(git log --max-count=1 --format=%h HEAD)
+
+    date=$(git log --max-count=1 --format=%cd --date=format:%Y%m%d HEAD)
+
+    snapinfo=${date}git${commit}
+
+    # use the extraver component of the release tag to indicate that the
+    # repository state is "dirty"
+    git update-index -q --refresh &>/dev/null
+    dirty=$(git diff-index --name-only HEAD)
+    test "x$dirty" != x && extraver='.dirty'
+
+    release=${pkgrel}${extraver}.${snapinfo}
+
+    vr="$version $release"
+  fi
+else
+  vr="$version_fallback $release_fallback"
+fi
+
+printf '%s\n' "$vr"
