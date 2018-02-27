@@ -1,0 +1,225 @@
+#! /usr/bin/env bash
+
+# Copyright (C) 2018 Quickhatch
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+# This script is derived from git-version-gen from Gnulib:
+# https://git.savannah.gnu.org/cgit/gnulib.git/tree/build-aux/git-version-gen
+# It may be run two ways:
+# - from a git repository in which the "git describe" command below produces
+#   useful output (thus requiring at least one signed tag)
+# - from a non-git-repo directory containing a .tarball-rpm-version file, which
+#   presumes this script is invoked like
+#   "./git-rpm-version-gen .tarball-rpm-version".
+
+# In order to use snapshot release RPM version/release strings in your project,
+# you will need a generated version/release string file:
+#
+# .tarball-rpm-version - present only in a distribution tarball, and not in a
+#   checked-out repository.  Created with contents that were learned at the last
+#   time autoconf was run, and used by git-rpm-version-gen.  Must not be present
+#   in either $(srcdir) or $(builddir) for git-rpm-version-gen to give accurate
+#   answers during normal development with a checked out tree, but must be
+#   present in a tarball when there is no version control system.  Therefore, it
+#   cannot be used in any dependencies.  GNUmakefile has hooks to force a
+#   reconfigure at distribution time to get the value correct, without penalizing
+#   normal development with extra reconfigures.
+#
+# .tarball-rpm-version is never generated in a VC'd directory, so it need not
+# be listed in .gitignore.
+#
+# Use the following line in your configure.ac, so that $(QH_RPM_VERSION) and
+# $(QH_RPM_RELEASE), or alternate variables of your choice, will automatically
+# be up-to-date each time configure is run.
+#
+# QH_RPM_VERSION_RELEASE(
+#         m4_esyscmd_s([build-aux/git-rpm-version-gen .tarball-rpm-version]))
+#
+# You will also want to distribute git-rpm-version-gen, so that it is
+# available when autoreconf runs. If you use Automake, you can do this with
+# AC_REQUIRE_AUX_FILE([git-rpm-version-gen]) or by adding the file to
+# EXTRA_DIST IN Makefile.am.
+#
+# Then use the following lines in your Makefile.am, so that
+# .tarball-rpm-version will exist in distribution tarballs.
+#
+# dist-hook:
+#	echo $(QH_RPM_VERSION) $(QH_RPM_RELEASE) > $(distdir)/.tarball-rpm-version
+
+function usage()
+{
+	cat <<- EOF
+
+	Usage: $me [OPTION]... .tarball-rpm-version
+
+	Print RPM Version and Release tags. The format of .tarball-rpm-version
+	is a single line containing the version and release strings separated
+	by whitespace. For example:
+
+	1.2.3 4.20180226gitdeadbee
+
+	If this file is not present, or contains corrupt data, the script will
+	attempt to use git to determine version and release strings which follow
+	Fedora guidelines (https://fedoraproject.org/wiki/Packaging:Versioning).
+	If that fails, the fallback version and release strings will be used.
+	The result will be emitted to standard output.
+
+	Options:
+
+	  -p, --prefix PREFIX			prefix of git release tags (default: $PREFIX)
+	  -v, --version-fallback FALLBACK	fallback version tag (default: $VERSION_FALLBACK)
+	  -r, --release-fallback FALLBACK	fallback release tag (default: $RELEASE_FALLBACK)
+	  -h, --help				display this help and exit
+	EOF
+} # usage
+
+# borrowed from gnulib
+# msgf_ FORMAT-STRING ARG1...
+function msgf_ ()
+{
+  local msgf_format_="$1"
+  shift
+  local nl='
+'
+  case $* in
+    *$nl*) me_=$(printf "$me"|tr "$nl|" '??')
+       printf "$msgf_format_" "$@" | sed "s|^|$me_: |" ;;
+    *) printf "$me: $msgf_format_" "$@" ;;
+  esac
+} # msgf_
+
+# borrowed from gnulib
+# msg_ WORD1...
+function msg_ ()
+{
+  # If IFS does not start with ' ', set it and emit the message in a subshell.
+  case $IFS in
+    ' '*) msgf_ '%s\n' "$*";;
+    *)    (IFS=' '; msg_ "$@");;
+  esac
+} # msg_
+
+# borrowed from gnulib
+# warn_ WORD1...
+function warn_ ()
+{
+  msg_ "$@" 1>&2
+} # warn_
+
+# borrowed from gnulib
+# die WORD1...
+function die()
+{
+  warn_ "$@"
+  exit 1
+} # die
+
+me=$(basename $0)
+nl='
+'
+PREFIX=v
+prefix=$PREFIX
+RELEASE_FALLBACK=1
+release_fallback=$RELEASE_FALLBACK
+VERSION_FALLBACK=0
+version_fallback=$VERSION_FALLBACK
+vr=
+
+short_opts='hp:r:v:'
+long_opts='help,prefix:,release-fallback:,version-fallback:'
+
+if ! options=$(getopt --options $short_opts --longoptions $long_opts --name $me -- "$@"); then
+  die "Option parsing failed"
+fi
+eval set -- "$options"
+
+while true; do
+  case "$1" in
+    -h|--help) usage; exit ;;
+    -p|--prefix) prefix="$2"; shift 2 ;;
+    -r|--release-fallback) release_fallback="$2"; shift 2 ;;
+    -v|--version-fallback) version_fallback="$2"; shift 2 ;;
+    --) shift; break ;;
+    *) die 'Option parsing failed' ;;
+  esac
+done
+
+vr_file=$1
+
+test "x$vr_file" != x || die 'version file argument is required'
+
+# first try the version/release file
+if [[ -f $vr_file ]]; then
+  vr=$(<$vr_file) || vr=
+  # there should be two strings
+  test "$(wc -w <$vr_file)" = 2 || vr=
+  # reject multi-line output
+  case $vr in
+    *$nl*) vr= ;;
+  esac
+  # version and release should start with a number
+  for w in $vr; do
+    case $w in
+      [0-9]*) ;;
+      *) vr= ;;
+    esac
+  done
+  test "x$vr" = x \
+    && warn_ "WARNING: $vr_file contains invalid or corrupt data"
+fi
+
+# if the file above produced a version use that, otherwise try git, and if
+# that fails use the fallback version/release
+if test "x$vr" != x; then
+  : # use $vr
+elif test "$(git log --max-count=1 --pretty=format:x . 2>&1)" = x \
+    && gv=$(git describe --match="$prefix*" HEAD 2>/dev/null) \
+    && case $gv in
+         $prefix[0-9]*) ;;
+         *) (exit 1) ;;
+       esac; then
+
+  # version tag
+  version=$(sed -re "s/^$prefix([0-9][0-9.]*)-.*$/\1/" <<<$gv)
+
+  # release tag
+  if git describe --exact-match --match="$prefix*" HEAD &>/dev/null; then
+    # this version is a release, so use the fallback release tag
+    release="$release_fallback"
+  else # snapshot release
+
+    # package release number
+    pkgrel=$(sed -re "s/^.*-([0-9]{1,})-g.*$/\1/" <<<$gv)
+
+    # snapinfo component
+    commit=$(git log --max-count=1 --format=%h HEAD)
+    date=$(git log --max-count=1 --format=%cd --date=format:%Y%m%d HEAD)
+    snapinfo=${date}git${commit}
+
+    # use the extraver component of the release tag to indicate that the
+    # repository state is "dirty"
+    git update-index -q --refresh &>/dev/null
+    dirty=$(git diff-index --name-only HEAD)
+    test "x$dirty" != x && extraver='.dirty'
+
+    release=${pkgrel}${extraver}.${snapinfo}
+
+    vr="$version $release"
+  fi
+else
+  vr="$version_fallback $release_fallback"
+fi
+
+printf '%s\n' "$vr"
