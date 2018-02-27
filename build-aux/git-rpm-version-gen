@@ -47,6 +47,11 @@
 # QH_RPM_VERSION_RELEASE(
 #         m4_esyscmd_s([build-aux/git-rpm-version-gen .tarball-rpm-version]))
 #
+# You will also want to distribute git-rpm-version-gen, so that it is
+# available when autoreconf runs. If you use Automake, you can do this with
+# AC_REQUIRE_AUX_FILE([git-rpm-version-gen]) or by adding the file to
+# EXTRA_DIST IN Makefile.am.
+#
 # Then use the following lines in your Makefile.am, so that
 # .tarball-rpm-version will exist in distribution tarballs.
 #
@@ -159,7 +164,7 @@ test "x$vr_file" != x || die 'version file argument is required'
 if [[ -f $vr_file ]]; then
   vr=$(<$vr_file) || vr=
   # there should be two strings
-  test "$(wc -w $vr_file)" = 2 || vr=
+  test "$(wc -w <$vr_file)" = 2 || vr=
   # reject multi-line output
   case $vr in
     *$nl*) vr= ;;
