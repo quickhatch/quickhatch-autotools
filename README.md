@@ -2,9 +2,9 @@
 
 Autoconf macros and auxiliary build tools for use with the [GNU Autotools][4].
 
-## Macro List
+## Macros
 
-See source code for macro usage instructions.
+See source code for usage instructions.
 
 * [QH_ENABLE_DEBUG][1]
 * [QH_ENABLE_WARN_ERROR][1]
@@ -15,7 +15,7 @@ See source code for macro usage instructions.
 
 ## Auxiliary Build Tools
 
-See source code for macro usage instructions.
+See source code for usage instructions.
 
 * [git-rpm-version-gen][5]
 
