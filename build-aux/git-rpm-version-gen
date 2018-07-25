@@ -197,12 +197,13 @@ elif test "$(git log --max-count=1 --pretty=format:x . 2>&1)" = x \
   # release tag
   if git describe --exact-match --match="$prefix*" HEAD &>/dev/null; then
 
-    # this version is a release, so use the fallback release tag for pkgrel
+    # this version is a release; git describe data won't have a commit count to
+    # use for package release number, so we use fallback release tag instead.
     pkgrel="$release_fallback"
 
   else # snapshot release
 
-    # package release number
+    # get package release number from git describe data
     pkgrel=$(sed -re "s/^.*-([0-9]{1,})-g.*$/\1/" <<<$gv)
 
     # snapinfo component
