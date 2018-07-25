@@ -192,32 +192,36 @@ elif test "$(git log --max-count=1 --pretty=format:x . 2>&1)" = x \
        esac; then
 
   # version tag
-  version=$(sed -re "s/^$prefix([0-9][0-9.]*)-.*$/\1/" <<<$gv)
+  version=$(sed -re "s/^$prefix([0-9][0-9.]*).*$/\1/" <<<$gv)
 
   # release tag
   if git describe --exact-match --match="$prefix*" HEAD &>/dev/null; then
-    # this version is a release, so use the fallback release tag
-    release="$release_fallback"
+
+    # this version is a release; git describe data won't have a commit count to
+    # use for package release number, so we use fallback release tag instead.
+    pkgrel="$release_fallback"
+
   else # snapshot release
 
-    # package release number
+    # get package release number from git describe data
     pkgrel=$(sed -re "s/^.*-([0-9]{1,})-g.*$/\1/" <<<$gv)
 
     # snapinfo component
     commit=$(git log --max-count=1 --format=%h HEAD)
     date=$(git log --max-count=1 --format=%cd --date=format:%Y%m%d HEAD)
-    snapinfo=${date}git${commit}
+    snapinfo=".${date}git${commit}"
 
-    # use the extraver component of the release tag to indicate that the
-    # repository state is "dirty"
-    git update-index -q --refresh &>/dev/null
-    dirty=$(git diff-index --name-only HEAD)
-    test "x$dirty" != x && extraver='.dirty'
-
-    release=${pkgrel}${extraver}.${snapinfo}
-
-    vr="$version $release"
   fi
+
+  # use the extraver component of the release tag to indicate that the
+  # repository state is "dirty"
+  git update-index -q --refresh &>/dev/null
+  dirty=$(git diff-index --name-only HEAD)
+  test "x$dirty" != x && extraver='.dirty'
+
+  release=${pkgrel}${extraver}${snapinfo}
+
+  vr="$version $release"
 else
   vr="$version_fallback $release_fallback"
 fi

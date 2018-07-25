@@ -50,9 +50,6 @@ qh_build_aux_files='
 
 bootstrap_post_import_hook()
 {
-  # Automake requires that ChangeLog exist.
-  touch ChangeLog || return 1
-
   # Update submodules
   for sm in $submodules; do
     sm_path=$(git_modules_config submodule.$sm.path)
