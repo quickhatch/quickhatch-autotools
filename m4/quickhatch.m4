@@ -1,5 +1,35 @@
 # quickhatch.m4
 
+# QH_ARG_ENABLE(PARAMETER, DEFAULT_VALUE)
+# ----------------------------------------------------------
+# Wrapper around AC_ARG_ENABLE
+# e.g.: QH_ARG_ENABLE([foo], [no])
+# will generate a configure option --enable-foo. The option's argument will be
+# stored in enable_foo. The default value for the option will be no.
+AC_DEFUN([QH_ARG_ENABLE],
+[
+AC_ARG_ENABLE([m4_translit([$1], [_], [-])],
+              [AS_HELP_STRING([--enable-m4_translit([$1], [_], [-])],
+                              [enable $1 (default=$2)])],
+              [enable_[]$1=$enableval],
+              [enable_[]$1=$2])
+]) # QH_ARG_ENABLE
+
+# QH_ARG_WITH(PARAMETER, DEFAULT_VALUE)
+# ----------------------------------------------------------
+# Wrapper around AC_ARG_WITH
+# e.g.: QH_ARG_WITH([foo], [bar])
+# will generate a configure option --with-foo. The option's argument will be
+# stored in with_foo. The default value for the option will be bar.
+AC_DEFUN([QH_ARG_WITH],
+[
+AC_ARG_WITH([m4_translit([$1], [_], [-])],
+            [AS_HELP_STRING([--with-m4_translit([$1], [_], [-])],
+                            [with $1 (default=$2)])],
+            [with_[]$1=$withval],
+            [with_[]$1=$2])
+]) # QH_ARG_WITH
+
 # QH_ENABLE_DEBUG(VARIABLE, [DEFINE_SYMBOL])
 # ------------------------------------------
 # Add configure option (--enable-debug). If enabled, add compiler flags
@@ -102,3 +132,15 @@ AS_VAR_SET_IF([$1],
                       AC_MSG_WARN([$1 set to empty value!])],
                      [AC_MSG_RESULT([$$1])])])
 ]) # QH_VAR_ENSURE
+
+# QH_REQUIRE_PROG(VARIABLE, PROG-TO-CHECK, DESCRIPTION)
+# ----------------------------------------------------------
+# Ensure program PROG-TO-CHECK exists in PATH. Set VARIABLE to absolute path
+# of PROG-TO-CHECK, and make it precious by passing to AC_ARG_VAR along with
+# DESCRIPTION.
+AC_DEFUN([QH_REQUIRE_PROG],
+[
+AC_ARG_VAR([$1],[$3])
+AC_PATH_PROG([$1],[$2])
+AS_IF([test "x$$1" = x], [AC_MSG_ERROR([failed to find program: $2])])
+]) # QH_REQUIRE_PROG

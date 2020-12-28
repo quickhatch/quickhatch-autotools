@@ -6,12 +6,15 @@ Autoconf macros and auxiliary build tools for use with the [GNU Autotools][4].
 
 See source code for usage instructions.
 
+* [QH_ARG_ENABLE][1]
+* [QH_ARG_WITH][1]
 * [QH_ENABLE_DEBUG][1]
 * [QH_ENABLE_WARN_ERROR][1]
 * [QH_MANYWARN_ALL_GCC][1]
 * [QH_PKG_CHECK_EXISTS][1]
 * [QH_RPM_VERSION_RELEASE][1]
 * [QH_VAR_ENSURE][1]
+* [QH_REQUIRE_PROG][1]
 
 ## Auxiliary Build Tools
 
