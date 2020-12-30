@@ -27,14 +27,27 @@ See source code for usage instructions.
 To use these macros in your project, we recommend installing them as a Git
 submodule.
 
+### Initial Setup
+
 * Add the `quickhatch-autotools` repository as a submodule of your project.
 
         $ git submodule add --name quickhatch-autotools \
             https://github.com/quickhatch/quickhatch-autotools.git .qh-at
+        $ git config -f .gitmodules submodule.quickhatch-autotools.shallow true
+        $ git submodule set-branch --branch master quickhatch-autotools
 
 * Mention `-I .qh-at/m4` in `ACLOCAL_AMFLAGS` in `Makefile.am`.
 
         ACLOCAL_AMFLAGS = -I m4 -I .qh-at/m4 --install
+
+### Updating
+
+Here are the steps to update the quickhatch-autotools submodule to the latest
+upstream version, assuming the initial setup was done as specified above.
+
+        $ git submodule update --recursive --remote .qh-at
+        $ git add .qh-at
+        $ git commit -m 'Updating quickhatch-autotools submodule'
 
 ### Integration with Gnulib
 
