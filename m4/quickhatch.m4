@@ -144,3 +144,43 @@ AC_ARG_VAR([$1],[$3])
 AC_PATH_PROG([$1],[$2])
 AS_IF([test "x$$1" = x], [AC_MSG_ERROR([failed to find program: $2])])
 ]) # QH_REQUIRE_PROG
+
+# QH_CLANG_VERSION_MAJOR(VARIABLE, DESCRIPTION)
+# ----------------------------------------------------------
+# Set VARIABLE to value of clang major version number, and make it precious by
+# passing to AC_ARG_VAR along with DESCRIPTION.
+AC_DEFUN([QH_CLANG_VERSION_MAJOR],
+[
+AC_ARG_VAR([$1],[$2])
+AC_MSG_CHECKING([if $1 is set])
+AS_VAR_SET_IF([$1],
+              [AC_MSG_RESULT([$$1])],
+              [AC_MSG_RESULT([no])
+               AS_VAR_SET([CC], [clang])
+               AS_ECHO_N(['setting $1 to computed value... '])
+               AC_COMPUTE_INT([$1],[__clang_major__])
+               AS_IF([test "x$$1" = x],
+                     [AC_MSG_RESULT([empty])
+                      AC_MSG_WARN([$1 set to empty value!])],
+                     [AC_MSG_RESULT([$$1])])])
+]) # QH_CLANG_VERSION_MAJOR
+
+# QH_GCC_VERSION_MAJOR(VARIABLE, DESCRIPTION)
+# ----------------------------------------------------------
+# Set VARIABLE to value of gcc major version number, and make it precious by
+# passing to AC_ARG_VAR along with DESCRIPTION.
+AC_DEFUN([QH_GCC_VERSION_MAJOR],
+[
+AC_ARG_VAR([$1],[$2])
+AC_MSG_CHECKING([if $1 is set])
+AS_VAR_SET_IF([$1],
+              [AC_MSG_RESULT([$$1])],
+              [AC_MSG_RESULT([no])
+               AS_VAR_SET([CC], [gcc])
+               AS_ECHO_N(['setting $1 to computed value... '])
+               AC_COMPUTE_INT([$1],[__GNUC__])
+               AS_IF([test "x$$1" = x],
+                     [AC_MSG_RESULT([empty])
+                      AC_MSG_WARN([$1 set to empty value!])],
+                     [AC_MSG_RESULT([$$1])])])
+]) # QH_GCC_VERSION_MAJOR
