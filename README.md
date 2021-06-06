@@ -32,21 +32,21 @@ submodule.
 * Add the `quickhatch-autotools` repository as a submodule of your project.
 
         $ git submodule add --name quickhatch-autotools \
-            https://github.com/quickhatch/quickhatch-autotools.git .qh-at
+            https://github.com/quickhatch/quickhatch-autotools.git .quickhatch
         $ git config -f .gitmodules submodule.quickhatch-autotools.shallow true
         $ git submodule set-branch --branch master quickhatch-autotools
 
-* Mention `-I .qh-at/m4` in `ACLOCAL_AMFLAGS` in `Makefile.am`.
+* Mention `-I .quickhatch/m4` in `ACLOCAL_AMFLAGS` in `Makefile.am`.
 
-        ACLOCAL_AMFLAGS = -I m4 -I .qh-at/m4 --install
+        ACLOCAL_AMFLAGS = -I m4 -I .quickhatch/m4 --install
 
 ### Updating
 
 Here are the steps to update the quickhatch-autotools submodule to the latest
 upstream version, assuming the initial setup was done as specified above.
 
-        $ git submodule update --recursive --remote .qh-at
-        $ git add .qh-at
+        $ git submodule update --recursive --remote .quickhatch
+        $ git add .quickhatch
         $ git commit -m 'Updating quickhatch-autotools submodule'
 
 ### Integration with Gnulib
