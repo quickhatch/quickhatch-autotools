@@ -133,15 +133,15 @@ AS_VAR_SET_IF([$1],
                      [AC_MSG_RESULT([$$1])])])
 ]) # QH_VAR_ENSURE
 
-# QH_REQUIRE_PROG(VARIABLE, PROG-TO-CHECK, DESCRIPTION)
+# QH_REQUIRE_PROG(VARIABLE, PROGS-TO-CHECK, DESCRIPTION)
 # ----------------------------------------------------------
-# Ensure program PROG-TO-CHECK exists in PATH. Set VARIABLE to absolute path
-# of PROG-TO-CHECK, and make it precious by passing to AC_ARG_VAR along with
-# DESCRIPTION.
+# Ensure one of the programs PROGS-TO-CHECK exists in PATH. Set VARIABLE to
+# absolute path of the first program found in PROGS-TO-CHECK, and make it
+# precious by passing to AC_ARG_VAR along with DESCRIPTION.
 AC_DEFUN([QH_REQUIRE_PROG],
 [
 AC_ARG_VAR([$1],[$3])
-AC_PATH_PROG([$1],[$2])
+AC_PATH_PROGS([$1],[$2])
 AS_IF([test "x$$1" = x], [AC_MSG_ERROR([failed to find program: $2])])
 ]) # QH_REQUIRE_PROG
 
