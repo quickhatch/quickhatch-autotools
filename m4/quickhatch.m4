@@ -133,54 +133,55 @@ AS_VAR_SET_IF([$1],
                      [AC_MSG_RESULT([$$1])])])
 ]) # QH_VAR_ENSURE
 
-# QH_REQUIRE_PROG(VARIABLE, PROG-TO-CHECK, DESCRIPTION)
+# QH_REQUIRE_PROG(VARIABLE, PROGS-TO-CHECK, DESCRIPTION)
 # ----------------------------------------------------------
-# Ensure program PROG-TO-CHECK exists in PATH. Set VARIABLE to absolute path
-# of PROG-TO-CHECK, and make it precious by passing to AC_ARG_VAR along with
-# DESCRIPTION.
+# Ensure one of the programs PROGS-TO-CHECK exists in PATH. Set VARIABLE to
+# absolute path of the first program found in PROGS-TO-CHECK, and make it
+# precious by passing to AC_ARG_VAR along with DESCRIPTION.
 AC_DEFUN([QH_REQUIRE_PROG],
 [
 AC_ARG_VAR([$1],[$3])
-AC_PATH_PROG([$1],[$2])
+AC_PATH_PROGS([$1],[$2])
 AS_IF([test "x$$1" = x], [AC_MSG_ERROR([failed to find program: $2])])
 ]) # QH_REQUIRE_PROG
 
-# QH_CLANG_VERSION_MAJOR(VARIABLE, DESCRIPTION)
+# QH_COMPILER_C_VERSION_MAJOR(VARIABLE, DESCRIPTION, COMPILER)
 # ----------------------------------------------------------
-# Set VARIABLE to value of clang major version number, and make it precious by
-# passing to AC_ARG_VAR along with DESCRIPTION.
-AC_DEFUN([QH_CLANG_VERSION_MAJOR],
+# Set VARIABLE to value of C COMPILER's major version number, and make it
+# precious by passing to AC_ARG_VAR along with DESCRIPTION.
+# Supported compilers: clang, gcc
+AC_DEFUN([QH_COMPILER_C_VERSION_MAJOR],
 [
 AC_ARG_VAR([$1],[$2])
 AC_MSG_CHECKING([if $1 is set])
 AS_VAR_SET_IF([$1],
               [AC_MSG_RESULT([$$1])],
               [AC_MSG_RESULT([no])
-               AS_VAR_SET([CC], [clang])
+               AC_LANG_PUSH([C])
+               AS_VAR_COPY([_qh_cc], [CC])
+               AS_VAR_SET([CC], [$3])
                AS_ECHO_N(['setting $1 to computed value... '])
-               AC_COMPUTE_INT([$1],[__clang_major__])
+               AS_CASE([$3],
+                       [*gcc*], [AC_COMPUTE_INT([$1], [__GNUC__])],
+                       [*clang*], [AC_COMPUTE_INT([$1], [__clang_major__])],
+                       [AC_MSG_ERROR([unsupported compiler: $3])])
                AS_IF([test "x$$1" = x],
                      [AC_MSG_RESULT([empty])
                       AC_MSG_WARN([$1 set to empty value!])],
-                     [AC_MSG_RESULT([$$1])])])
-]) # QH_CLANG_VERSION_MAJOR
+                     [AC_MSG_RESULT([$$1])])
+               AS_VAR_COPY([CC], [_qh_cc])
+               AC_LANG_POP([C])])
+]) # QH_COMPILER_C_VERSION_MAJOR
 
-# QH_GCC_VERSION_MAJOR(VARIABLE, DESCRIPTION)
+# QH_OS_RELEASE
 # ----------------------------------------------------------
-# Set VARIABLE to value of gcc major version number, and make it precious by
-# passing to AC_ARG_VAR along with DESCRIPTION.
-AC_DEFUN([QH_GCC_VERSION_MAJOR],
+# Find the system os-release file and source it.
+AC_DEFUN([QH_OS_RELEASE],
 [
-AC_ARG_VAR([$1],[$2])
-AC_MSG_CHECKING([if $1 is set])
-AS_VAR_SET_IF([$1],
-              [AC_MSG_RESULT([$$1])],
-              [AC_MSG_RESULT([no])
-               AS_VAR_SET([CC], [gcc])
-               AS_ECHO_N(['setting $1 to computed value... '])
-               AC_COMPUTE_INT([$1],[__GNUC__])
-               AS_IF([test "x$$1" = x],
-                     [AC_MSG_RESULT([empty])
-                      AC_MSG_WARN([$1 set to empty value!])],
-                     [AC_MSG_RESULT([$$1])])])
-]) # QH_GCC_VERSION_MAJOR
+AC_CHECK_FILE([/etc/os-release],
+              [. /etc/os-release],
+              [AC_CHECK_FILE([/usr/lib/os-release],
+                             [. /usr/lib/os-release],
+                             [AC_MSG_ERROR([failed to find os-release file])])]
+)
+]) # QH_OS_RELEASE
