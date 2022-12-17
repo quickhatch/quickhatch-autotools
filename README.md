@@ -26,8 +26,7 @@ See source code for usage instructions.
 
 ## Installation as Git Submodule
 
-To use these macros in your project, we recommend installing them as a Git
-submodule.
+To use these tools in your project, install them as a Git submodule.
 
 ### Initial Setup
 
@@ -54,7 +53,7 @@ upstream version, assuming the initial setup was done as specified above.
 ### Integration with Gnulib
 
 If your project uses Gnulib's [bootstrap][2] script, add the following to your
-[bootstrap.conf][3] `bootstrap_post_import_hook` function override.
+[bootstrap.conf][3] `bootstrap_post_pull_hook` function override.
 
 ```bash
 # non-gnulib submodules
@@ -66,7 +65,7 @@ qh_build_aux_files='
   git-rpm-version-gen
 '
 
-bootstrap_post_import_hook()
+bootstrap_post_pull_hook()
 {
   # Update submodules
   for sm in $submodules; do
