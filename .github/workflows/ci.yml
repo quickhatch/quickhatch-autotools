@@ -42,7 +42,7 @@ jobs:
 
       - name: Cache Gnulib Repository
         id: cache-gnulib
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         env:
           cache-name: cache-gnulib
         with:
@@ -86,7 +86,7 @@ jobs:
           echo "PROJECT_VERSION=`cat .version`" >>$GITHUB_ENV
 
       - name: Upload Distribution Artifacts
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: distribution-artifacts
           if-no-files-found: error
