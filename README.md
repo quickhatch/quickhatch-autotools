@@ -1,3 +1,5 @@
+[![ci](https://github.com/quickhatch/quickhatch-autotools/workflows/ci/badge.svg)](https://github.com/quickhatch/quickhatch-autotools/actions)
+
 # quickhatch-autotools
 
 Autoconf macros and auxiliary build tools for use with the [GNU Autotools][4].
