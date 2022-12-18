@@ -37,6 +37,14 @@ jobs:
         with:
           fetch-depth: 0
 
+      # This step addresses issues with actions/checkout
+      # see: https://github.com/actions/checkout/issues/290
+      # see: https://github.com/actions/checkout/issues/915
+      - name: Post Checkout Hacks
+        run: |
+          git config --global --add safe.directory $(pwd)
+          git fetch --force --tags
+
       - name: Configure Gnulib Cache Key
         run: echo "GNULIB_CACHE_KEY=`git submodule status .gnulib | sed -re 's/^.([0-9,a-f]{1,}) .*$/\1/'`" >>$GITHUB_ENV
 
@@ -61,12 +69,8 @@ jobs:
               git clone $GNULIB_URL $GNULIB_REFDIR
           fi
 
-      # bootstrap initializes submodules, so we need safe.directory
-      # see: https://github.com/actions/checkout/issues/915
       - name: Bootstrap
-        run: |
-          git config --global --add safe.directory $(pwd)
-          ./bootstrap --install-buildreqs
+        run: ./bootstrap --install-buildreqs
 
       - name: Configure
         run: ./configure --prefix=$RUNNER_TEMP/.local
