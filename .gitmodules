@@ -1,0 +1,5 @@
+[submodule "gnulib"]
+	path = .gnulib
+	url = https://github.com/coreutils/gnulib.git
+	shallow = true
+	branch = master
