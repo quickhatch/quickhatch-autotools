@@ -53,7 +53,8 @@ upstream version, assuming the initial setup was done as specified above.
 ### Integration with Gnulib
 
 If your project uses Gnulib's [bootstrap][2] script, add the following to your
-[bootstrap.conf][3] `bootstrap_post_pull_hook` function override.
+[bootstrap.conf][3] `bootstrap_post_pull_hook` function override. See the
+[Gnulib documentation][6] for more details.
 
 ```bash
 # non-gnulib submodules
@@ -85,9 +86,10 @@ bootstrap_post_pull_hook()
 ```
 
 [1]: ./m4/quickhatch.m4
-[2]: https://github.com/coreutils/gnulib/blob/master/build-aux/bootstrap
-[3]: https://github.com/coreutils/gnulib/blob/master/build-aux/bootstrap.conf
+[2]: https://github.com/coreutils/gnulib/blob/master/top/bootstrap
+[3]: https://github.com/coreutils/gnulib/blob/master/top/bootstrap.conf
 [4]: https://www.gnu.org/software/automake/faq/autotools-faq.html
 [5]: ./build-aux/git-rpm-version-gen
+[6]: https://www.gnu.org/software/gnulib/manual/gnulib.html#Developer-tools
 
 [comment]: # ( vim: set autoindent syntax=markdown textwidth=78: )
